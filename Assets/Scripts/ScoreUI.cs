@@ -16,8 +16,8 @@ public class ScoreUI : MonoBehaviour {
 		score = GetComponent<tk2dTextMesh>();
 		AlignToCamera();
 
-		lastScore = GameState.Score;
-		lastBonus = Mathf.CeilToInt(GameState.LevelTimer);
+		lastScore = -1;
+		lastBonus = -1;
 	}
 
 	Vector3 tmpPos;

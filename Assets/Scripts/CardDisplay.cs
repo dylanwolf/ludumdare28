@@ -77,9 +77,9 @@ public class CardDisplay : MonoBehaviour {
 		}
 	}
 
-	void OnMouseUpAsButton()
+	void OnMouseUp()
 	{
-		if (GameState.PowerTimer <= 0 && GameState.DiscardTimer <= 0)
+		if (renderer.enabled)
 		{
 			GameState.ActivatePower(GameState.CurrentPower);
 		}

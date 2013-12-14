@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using ThinksquirrelSoftware.Thinkscroller;
 
 public class Avatar : MonoBehaviour {
 
@@ -77,6 +78,7 @@ public class Avatar : MonoBehaviour {
 
 	private Vector3 targetDirection;
 	private Vector3 remainingDistance;
+	private Vector2 parallaxScroll;
 	void Update () {
 		if (lastPower != GameState.ActivePower)
 		{
@@ -132,6 +134,10 @@ public class Avatar : MonoBehaviour {
 
 				// Move the player
 				transform.position += targetDirection;
+				parallaxScroll.x = targetDirection.x;
+				parallaxScroll.y = targetDirection.y;
+				Parallax.Scroll(parallaxScroll);
+
 			}
 			// Otherwise, decrement the stun timer
 			else
@@ -149,6 +155,11 @@ public class Avatar : MonoBehaviour {
 					SetColorByStatus();
 				}
 			}
+		}
+		else
+		{
+			anim.Stop ();
+			sprite.color = ColorNormal;
 		}
 	}
 

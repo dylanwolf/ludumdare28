@@ -42,7 +42,7 @@ public static class GameState {
 	public const int DefaultEnemyLoss = 300;
 	public static int EnemyPointLoss = 300;
 	#endregion
-	
+
 	public static void GameReset()
 	{
 		Score = 0;
