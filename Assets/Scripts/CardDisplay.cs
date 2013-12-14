@@ -59,18 +59,29 @@ public class CardDisplay : MonoBehaviour {
 
 	void Update ()
 	{
-		renderer.enabled = (GameState.CurrentMode == GameState.PlayMode.Started) && (GameState.PowerTimer <= 0);
-		if (GameState.PowerTimer <= 0)
+		renderer.enabled = (GameState.CurrentMode == GameState.PlayMode.Started) && (GameState.PowerTimer <= 0) && (GameState.DiscardTimer <= 0);
+		if (renderer.enabled)
 		{
 			if (lastY != Button.transform.localPosition.y)
 			{
 				AlignToButton();
 			}
+		}
+		if (GameState.PowerTimer <= 0)
+		{
 			if (lastPower != GameState.CurrentPower)
 			{
 				SetImage();
 				lastPower = GameState.CurrentPower;
 			}
+		}
+	}
+
+	void OnMouseUpAsButton()
+	{
+		if (GameState.PowerTimer <= 0 && GameState.DiscardTimer <= 0)
+		{
+			GameState.ActivatePower(GameState.CurrentPower);
 		}
 	}
 }

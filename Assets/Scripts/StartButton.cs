@@ -4,7 +4,7 @@ using System.Collections;
 public class StartButton : MonoBehaviour {
 
 	float lastAspect;
-	const string ActivateButton = "button-activate";
+	const string DiscardButton = "button-discard";
 	private tk2dSprite sprite;
 
 	void Start()
@@ -28,17 +28,18 @@ public class StartButton : MonoBehaviour {
 		if (GameState.CurrentMode == GameState.PlayMode.NotStarted)
 		{
 			GameState.CurrentMode = GameState.PlayMode.Started;
-			sprite.SetSprite(ActivateButton);
+			sprite.SetSprite(DiscardButton);
 		}
-		else if (GameState.PowerTimer <= 0)
+		else if (GameState.PowerTimer <= 0 && GameState.DiscardTimer <= 0)
 		{
-			GameState.ActivatePower(GameState.CurrentPower);
+			GameState.DiscardTimer = GameState.DiscardTimerMax;
+			GameState.PickNewPower();
 		}
 	}
 
 	void Update()
 	{
-		renderer.enabled = (GameState.CurrentMode != GameState.PlayMode.Finished) && (GameState.PowerTimer <= 0);
+		renderer.enabled = (GameState.CurrentMode != GameState.PlayMode.Finished) && (GameState.PowerTimer <= 0) && (GameState.DiscardTimer <= 0);
 		if (lastAspect != Camera.main.aspect)
 		{
 			AlignToCamera();

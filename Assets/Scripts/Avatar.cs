@@ -8,16 +8,23 @@ public class Avatar : MonoBehaviour {
 	public float LevelTimerStart = 0;
 
 	private GameState.Power? lastPower;
+	private float lastSpeed;
+
 	private tk2dSprite sprite;
+	private tk2dSpriteAnimator anim;
 
 	void Start()
 	{
 		sprite = GetComponent<tk2dSprite>();
+		anim = GetComponent<tk2dSpriteAnimator>();
+
 		targetNode = firstNode;
 		GameState.LevelTimer = LevelTimerStart;
 		GameState.CurrentMode = GameState.PlayMode.NotStarted;
 		GameState.ResetPlayer();
+
 		lastPower = GameState.ActivePower;
+		lastSpeed = GameState.PlayerSpeed;
 	}
 
 	Color ColorNormal = new Color(1, 1, 1);
@@ -79,7 +86,18 @@ public class Avatar : MonoBehaviour {
 		if (GameState.CurrentMode == GameState.PlayMode.Started)
 		{
 			// Update the timers
-			GameState.LevelTimer -= Time.deltaTime;
+			if (GameState.LevelTimer > 0)
+			{
+				GameState.LevelTimer -= Time.deltaTime;
+			}
+			if (GameState.LevelTimer < 0)
+			{
+				GameState.LevelTimer = 0;
+			}
+			if (GameState.DiscardTimer > 0)
+			{
+				GameState.DiscardTimer -= Time.deltaTime;
+			}
 			if (GameState.PowerTimer > 0)
 			{
 				GameState.PowerTimer -= Time.deltaTime;
@@ -93,6 +111,16 @@ public class Avatar : MonoBehaviour {
 			// Move if not stunned
 			if (GameState.StunTimer < 0)
 			{
+				if (!anim.IsPlaying("Player Walk"))
+				{
+					anim.Play ("Player Walk");
+				}
+				if (lastSpeed != GameState.PlayerSpeed)
+				{
+					anim.ClipFps = anim.CurrentClip.fps * (GameState.PlayerSpeed / GameState.DefaultPlayerSpeed);
+					lastSpeed = GameState.PlayerSpeed;
+				}
+
 				// Figure out the next move
 				remainingDistance = targetNode.transform.position - transform.position;
 				targetDirection = remainingDistance.normalized;
@@ -108,6 +136,13 @@ public class Avatar : MonoBehaviour {
 			// Otherwise, decrement the stun timer
 			else
 			{
+				lastSpeed = 0;
+
+				if (!anim.IsPlaying("Player Stand"))
+				{
+					anim.Play ("Player Stand");
+				}
+
 				GameState.StunTimer -= Time.deltaTime;
 				if (GameState.StunTimer < 0)
 				{

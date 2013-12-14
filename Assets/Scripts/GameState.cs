@@ -19,8 +19,11 @@ public static class GameState {
 	public static float StunTimerMax = 1;
 	public static float StunTimer = 0;
 
-	public const float PowerTimerMax = 3;
+	public const float PowerTimerMax = 2;
 	public static float PowerTimer = 0;
+
+	public const float DiscardTimerMax = 0.25f;
+	public static float DiscardTimer = 0;
 	#endregion
 
 	#region Movement
@@ -57,9 +60,14 @@ public static class GameState {
 	}
 
 	static Power[] PowerPicker = new Power[] { Power.AlternatePath, Power.Speed2x, Power.Coin2x, Power.HalvePenalty, Power.Invincible };
-	static void PickNewPower()
+	static Power? lastPower = null;
+	public static void PickNewPower()
 	{
-		CurrentPower = PowerPicker[Random.Range(0, PowerPicker.Length - 1)];
+		lastPower = CurrentPower;
+		while (CurrentPower == lastPower)
+		{
+			CurrentPower = PowerPicker[Random.Range(0, PowerPicker.Length)];
+		}
 	}
 
 	public static void EndLevel()
