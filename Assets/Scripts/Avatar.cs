@@ -5,8 +5,13 @@ using ThinksquirrelSoftware.Thinkscroller;
 public class Avatar : MonoBehaviour {
 
 	public NavNode firstNode;
-	private NavNode targetNode;
+	public bool FirstLevel = false;
+
+	[System.NonSerialized]
+	public NavNode targetNode;
 	public float LevelTimerStart = 0;
+
+	public Vector2 ConstantParallax = new Vector2(1.0f, 0.75f);
 
 	private GameState.Power? lastPower;
 	private float lastSpeed;
@@ -22,6 +27,7 @@ public class Avatar : MonoBehaviour {
 		targetNode = firstNode;
 		GameState.LevelTimer = LevelTimerStart;
 		GameState.CurrentMode = GameState.PlayMode.NotStarted;
+		if (FirstLevel) { GameState.GameReset(); }
 		GameState.ResetPlayer();
 
 		lastPower = GameState.ActivePower;
@@ -85,6 +91,8 @@ public class Avatar : MonoBehaviour {
 			SetColorByStatus();
 		}
 
+		parallaxScroll.x = 0; parallaxScroll.y = 0;
+
 		if (GameState.CurrentMode == GameState.PlayMode.Started)
 		{
 			// Update the timers
@@ -96,10 +104,12 @@ public class Avatar : MonoBehaviour {
 			{
 				GameState.LevelTimer = 0;
 			}
+
 			if (GameState.DiscardTimer > 0)
 			{
 				GameState.DiscardTimer -= Time.deltaTime;
 			}
+
 			if (GameState.PowerTimer > 0)
 			{
 				GameState.PowerTimer -= Time.deltaTime;
@@ -130,13 +140,26 @@ public class Avatar : MonoBehaviour {
 				if (targetDirection.magnitude > remainingDistance.magnitude)
 				{
 					targetDirection = remainingDistance;
+					if (GameState.FollowAlternatePath && targetNode.AltNavNode != null)
+					{
+						targetNode = targetNode.AltNavNode;
+					}
+					else if (targetNode.NextNavNode != null)
+					{
+						targetNode = targetNode.NextNavNode;
+					}
+					else
+					{
+						GameState.EndLevel();
+					}
 				}
 
 				// Move the player
+				targetDirection.z = 0;
 				transform.position += targetDirection;
+				sprite.FlipX = targetDirection.x < -0.01f;
 				parallaxScroll.x = targetDirection.x;
 				parallaxScroll.y = targetDirection.y;
-				Parallax.Scroll(parallaxScroll);
 
 			}
 			// Otherwise, decrement the stun timer
@@ -161,6 +184,9 @@ public class Avatar : MonoBehaviour {
 			anim.Stop ();
 			sprite.color = ColorNormal;
 		}
+
+		parallaxScroll += (ConstantParallax * Time.deltaTime * 0.1f);
+		Parallax.Scroll(parallaxScroll);
 	}
 
 	private NavNode tmpNode;
@@ -168,27 +194,10 @@ public class Avatar : MonoBehaviour {
 	{
 		switch (collider.gameObject.tag)
 		{
-			case "NavNode":
-			Debug.Log (string.Format ("Intersected with NavNode {0}", collider.name));
-			tmpNode = collider.GetComponent<NavNode>();
-			if (GameState.FollowAlternatePath && tmpNode.AltNavNode != null)
-			{
-				targetNode = tmpNode.AltNavNode;
-			}
-			else if (tmpNode.NextNavNode != null)
-			{
-				targetNode = tmpNode.NextNavNode;
-			}
-			else
-			{
-				GameState.EndLevel();
-			}
-			break;
-
 			case "Coin":
 			GameState.Score += GameState.CoinPoints;
 			DestroyObject(collider.gameObject);
-			Debug.Log (string.Format("Scored {0} for a total of {1}", GameState.CoinPoints, GameState.Score));
+			SoundBoard.PlayCoin();
 			break;
 
 			case "Enemy":
@@ -199,7 +208,7 @@ public class Avatar : MonoBehaviour {
 				DestroyObject(collider.gameObject);
 				GameState.StunTimer = GameState.StunTimerMax;
 				SetColorByStatus();
-				Debug.Log (string.Format("Lost {0} for a total of {1}", GameState.EnemyPointLoss, GameState.Score));
+				SoundBoard.PlayEnemy();
 			}
 			break;
 		}

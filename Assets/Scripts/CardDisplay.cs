@@ -77,7 +77,7 @@ public class CardDisplay : MonoBehaviour {
 		}
 	}
 
-	void OnMouseUp()
+	void OnMouseDown()
 	{
 		if (renderer.enabled)
 		{

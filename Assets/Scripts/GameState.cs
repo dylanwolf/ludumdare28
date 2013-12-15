@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 public static class GameState {
 
@@ -15,6 +17,7 @@ public static class GameState {
 
 	#region Timers
 	public static float LevelTimer = 0;
+	public const int TimeBonusMultiplier = 100;
 
 	public static float StunTimerMax = 1;
 	public static float StunTimer = 0;
@@ -27,7 +30,7 @@ public static class GameState {
 	#endregion
 
 	#region Movement
-	public const float DefaultPlayerSpeed = 0.5f;
+	public const float DefaultPlayerSpeed = 1.0f;
 	public static float PlayerSpeed = 0.5f;
 
 	public static bool FollowAlternatePath = true;
@@ -42,7 +45,7 @@ public static class GameState {
 	public const int DefaultEnemyLoss = 300;
 	public static int EnemyPointLoss = 300;
 	#endregion
-
+	
 	public static void GameReset()
 	{
 		Score = 0;
@@ -56,28 +59,51 @@ public static class GameState {
 		PlayerInvincible = false;
 		FollowAlternatePath = false;
 		ActivePower = null;
-		PickNewPower();
+
+		DiscardPile.Clear ();
+		DiscardPile.AddRange(new Power[] {
+			Power.AlternatePath, Power.AlternatePath, Power.AlternatePath,
+			Power.Coin2x, Power.Coin2x, Power.Coin2x,
+			Power.HalvePenalty, Power.HalvePenalty, Power.HalvePenalty,
+			Power.Invincible,
+			Power.Speed2x, Power.Speed2x
+		});
+		PickNewPower(true);
 	}
 
-	static Power[] PowerPicker = new Power[] { Power.AlternatePath, Power.Speed2x, Power.Coin2x, Power.HalvePenalty, Power.Invincible };
-	static Power? lastPower = null;
-	public static void PickNewPower()
+	static Stack<Power> Deck = new Stack<Power>();
+	static List<Power> DiscardPile = new List<Power>();
+	public static void PickNewPower(bool firstCard)
 	{
-		lastPower = CurrentPower;
-		while (CurrentPower == lastPower)
+		//CurrentPower = Power.AlternatePath;
+		//return;
+
+		if (!firstCard)
 		{
-			CurrentPower = PowerPicker[Random.Range(0, PowerPicker.Length)];
+			GameState.DiscardPile.Add(GameState.CurrentPower);
 		}
+
+		if (Deck.Count == 0)
+		{
+			Debug.Log ("Reshuffling discard pile with " + DiscardPile.Count.ToString() + " cards");
+			foreach (Power p in DiscardPile.OrderBy(x => Random.value))
+			{
+				Deck.Push (p);
+			}
+			DiscardPile.Clear();
+		}
+		CurrentPower = Deck.Pop ();
 	}
 
 	public static void EndLevel()
 	{
 		if (CurrentMode != PlayMode.Finished)
 		{
-			Score += Mathf.CeilToInt (LevelTimer);
+			Score += Mathf.CeilToInt (LevelTimer) * TimeBonusMultiplier;
 		}
 		CurrentMode = PlayMode.Finished;
-		Debug.Log ("End Level");
+		SoundBoard.StopMusic();
+		SoundBoard.PlayFinish();
 	}
 
 	public enum Power
@@ -97,6 +123,7 @@ public static class GameState {
 		Debug.Log (string.Format ("Activated power {0}", power));
 		PowerTimer = PowerTimerMax;
 		ActivePower = power;
+		SoundBoard.PlayCard();
 		switch (power)
 		{
 			case Power.AlternatePath:

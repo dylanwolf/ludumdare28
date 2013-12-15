@@ -29,11 +29,13 @@ public class StartButton : MonoBehaviour {
 		{
 			GameState.CurrentMode = GameState.PlayMode.Started;
 			sprite.SetSprite(DiscardButton);
+			SoundBoard.PlayCard();
 		}
 		else if (GameState.PowerTimer <= 0 && GameState.DiscardTimer <= 0)
 		{
 			GameState.DiscardTimer = GameState.DiscardTimerMax;
-			GameState.PickNewPower();
+			GameState.PickNewPower(false);
+			SoundBoard.PlayCard();
 		}
 	}
 
