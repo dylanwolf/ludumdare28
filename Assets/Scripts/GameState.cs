@@ -49,6 +49,63 @@ public static class GameState {
 	public static void GameReset()
 	{
 		Score = 0;
+		DiscardPile.Clear ();
+		DiscardPile.AddRange(new Power[] {
+			Power.AlternatePath, Power.AlternatePath, Power.AlternatePath,
+			Power.Coin2x, Power.Coin2x, Power.Coin2x,
+			Power.HalvePenalty, Power.HalvePenalty, Power.HalvePenalty,
+			Power.Invincible,
+			Power.Speed2x, Power.Speed2x
+		});
+		PickNewPower(true);
+	}
+	
+	static float levelTimerStart;
+	static NavNode firstNode;
+	static Vector3 avatarStart;
+	public static void LevelSave()
+	{
+		levelTimerStart = Avatar.Current.LevelTimerStart;
+		firstNode = Avatar.Current.firstNode;
+		avatarStart = Avatar.Current.transform.position;
+	}
+
+	public static List<GameObject> Collectables = new List<GameObject>();
+
+	public static void LevelReset()
+	{
+		while (Deck.Count > 0)
+		{
+			DiscardPile.Add(Deck.Pop ());
+		}
+
+		PowerTimer = 0;
+		DiscardTimer = 0;
+		Avatar.Current.transform.position = avatarStart;
+		Avatar.Current.firstNode = firstNode;
+		Avatar.Current.ResetLevel();
+		SoundBoard.StartMusic();
+		GameState.LevelTimer = levelTimerStart;
+
+		foreach (GameObject obj in Collectables)
+		{
+			obj.SetActive(true);
+		}
+		Collectables.Clear ();
+	}
+
+	public static int GetBestScore(int newScore)
+	{
+		int bestScore = PlayerPrefs.GetInt("BestScore");
+		if (newScore > bestScore)
+		{
+			PlayerPrefs.SetInt("BestScore", newScore);
+			return newScore;
+		}
+		else
+		{
+			return bestScore;
+		}
 	}
 
 	public static void ResetPlayer()
@@ -59,16 +116,7 @@ public static class GameState {
 		PlayerInvincible = false;
 		FollowAlternatePath = false;
 		ActivePower = null;
-
-		DiscardPile.Clear ();
-		DiscardPile.AddRange(new Power[] {
-			Power.AlternatePath, Power.AlternatePath, Power.AlternatePath,
-			Power.Coin2x, Power.Coin2x, Power.Coin2x,
-			Power.HalvePenalty, Power.HalvePenalty, Power.HalvePenalty,
-			Power.Invincible,
-			Power.Speed2x, Power.Speed2x
-		});
-		PickNewPower(true);
+		PickNewPower(false);
 	}
 
 	static Stack<Power> Deck = new Stack<Power>();
@@ -88,11 +136,13 @@ public static class GameState {
 			Debug.Log ("Reshuffling discard pile with " + DiscardPile.Count.ToString() + " cards");
 			foreach (Power p in DiscardPile.OrderBy(x => Random.value))
 			{
+				Debug.Log (string.Format ("Adding {0}", p));
 				Deck.Push (p);
 			}
 			DiscardPile.Clear();
 		}
 		CurrentPower = Deck.Pop ();
+		Debug.Log (string.Format("Drew {0}", CurrentPower));
 	}
 
 	public static void EndLevel()
@@ -104,6 +154,7 @@ public static class GameState {
 		CurrentMode = PlayMode.Finished;
 		SoundBoard.StopMusic();
 		SoundBoard.PlayFinish();
+		GameOverScreen.Show();
 	}
 
 	public enum Power

@@ -4,6 +4,8 @@ using ThinksquirrelSoftware.Thinkscroller;
 
 public class Avatar : MonoBehaviour {
 
+	public static Avatar Current;
+
 	public NavNode firstNode;
 	public bool FirstLevel = false;
 
@@ -21,15 +23,22 @@ public class Avatar : MonoBehaviour {
 
 	void Start()
 	{
+		Current = this;
+
 		sprite = GetComponent<tk2dSprite>();
 		anim = GetComponent<tk2dSpriteAnimator>();
 
-		targetNode = firstNode;
 		GameState.LevelTimer = LevelTimerStart;
 		GameState.CurrentMode = GameState.PlayMode.NotStarted;
 		if (FirstLevel) { GameState.GameReset(); }
 		GameState.ResetPlayer();
+		GameState.LevelSave();
+		ResetLevel();
+	}
 
+	public void ResetLevel()
+	{
+		targetNode = firstNode;
 		lastPower = GameState.ActivePower;
 		lastSpeed = GameState.PlayerSpeed;
 	}
@@ -196,7 +205,8 @@ public class Avatar : MonoBehaviour {
 		{
 			case "Coin":
 			GameState.Score += GameState.CoinPoints;
-			DestroyObject(collider.gameObject);
+			GameState.Collectables.Add(collider.gameObject);
+			collider.gameObject.SetActive(false);
 			SoundBoard.PlayCoin();
 			break;
 
@@ -205,7 +215,8 @@ public class Avatar : MonoBehaviour {
 			{
 				GameState.Score -= GameState.EnemyPointLoss;
 				if (GameState.Score < 0) { GameState.Score = 0; }
-				DestroyObject(collider.gameObject);
+				GameState.Collectables.Add(collider.gameObject);
+				collider.gameObject.SetActive(false);
 				GameState.StunTimer = GameState.StunTimerMax;
 				SetColorByStatus();
 				SoundBoard.PlayEnemy();

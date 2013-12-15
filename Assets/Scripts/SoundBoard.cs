@@ -55,6 +55,14 @@ public class SoundBoard : MonoBehaviour {
 		}
 	}
 
+	public static void StartMusic()
+	{
+		if (Current != null && Current.Music != null)
+		{
+			Current.Music.Play ();
+		}
+	}
+
 	public AudioSource[] CoinSounds;
 	public AudioSource[] EnemySounds;
 	public AudioSource[] CardSounds;
