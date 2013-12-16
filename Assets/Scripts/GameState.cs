@@ -49,6 +49,7 @@ public static class GameState {
 	public static void GameReset()
 	{
 		Score = 0;
+		Deck.Clear ();
 		DiscardPile.Clear ();
 		DiscardPile.AddRange(new Power[] {
 			Power.AlternatePath, Power.AlternatePath, Power.AlternatePath,
