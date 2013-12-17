@@ -95,6 +95,13 @@ public class Avatar : MonoBehaviour {
 	private Vector3 remainingDistance;
 	private Vector2 parallaxScroll;
 	void Update () {
+#if UNITY_ANDROID
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			Application.Quit();
+		}
+#endif
+
 		if (lastPower != GameState.ActivePower)
 		{
 			SetColorByStatus();
@@ -166,7 +173,7 @@ public class Avatar : MonoBehaviour {
 				// Move the player
 				targetDirection.z = 0;
 				transform.position += targetDirection;
-				sprite.FlipX = targetDirection.x < -0.01f;
+				sprite.FlipX = targetDirection.x < -0.001f;
 				parallaxScroll.x = targetDirection.x;
 				parallaxScroll.y = targetDirection.y;
 
